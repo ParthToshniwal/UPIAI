@@ -1,0 +1,127 @@
+{
+  "dataset_name": "DMart_sample_data.csv",
+  "profiled_at": "2026-09-26T15:21:07.947055",
+  "row_count": 50,
+  "column_count": 8,
+  "columns": [
+    "Date",
+    "Time",
+    "CustomerType",
+    "ProductCategory",
+    "UnitPrice",
+    "Quantity",
+    "Total",
+    "FullName"
+  ],
+  "data_types": {
+    "Date": "str",
+    "Time": "str",
+    "CustomerType": "str",
+    "ProductCategory": "str",
+    "UnitPrice": "float64",
+    "Quantity": "int64",
+    "Total": "float64",
+    "FullName": "str"
+  },
+  "missing_values": {
+    "Date": 0,
+    "Time": 0,
+    "CustomerType": 0,
+    "ProductCategory": 0,
+    "UnitPrice": 0,
+    "Quantity": 0,
+    "Total": 0,
+    "FullName": 0
+  },
+  "missing_percentage": {
+    "Date": 0.0,
+    "Time": 0.0,
+    "CustomerType": 0.0,
+    "ProductCategory": 0.0,
+    "UnitPrice": 0.0,
+    "Quantity": 0.0,
+    "Total": 0.0,
+    "FullName": 0.0
+  },
+  "duplicate_count": 0,
+  "unique_counts": {
+    "Date": 7,
+    "Time": 50,
+    "CustomerType": 3,
+    "ProductCategory": 6,
+    "UnitPrice": 31,
+    "Quantity": 11,
+    "Total": 34,
+    "FullName": 50
+  },
+  "numeric_statistics": {
+    "UnitPrice": {
+      "mean": 140.89,
+      "std": 117.778,
+      "min": 30.0,
+      "q25": 60.0,
+      "median": 92.5,
+      "q75": 187.5,
+      "max": 550.0,
+      "iqr": 127.5
+    },
+    "Quantity": {
+      "mean": 4.72,
+      "std": 3.3015,
+      "min": 1.0,
+      "q25": 3.0,
+      "median": 4.0,
+      "q75": 6.0,
+      "max": 20.0,
+      "iqr": 3.0
+    },
+    "Total": {
+      "mean": 530.9,
+      "std": 477.7984,
+      "min": 120.0,
+      "q25": 262.5,
+      "median": 360.0,
+      "q75": 615.0,
+      "max": 2750.0,
+      "iqr": 352.5
+    }
+  },
+  "date_ranges": {
+    "Date": {
+      "min_date": "2026-06-01 00:00:00",
+      "max_date": "2026-06-07 00:00:00",
+      "span_days": 7,
+      "valid_date_records": 50
+    },
+    "Time": {
+      "min_date": "2026-09-26 09:15:00",
+      "max_date": "2026-09-26 19:00:00",
+      "span_days": 1,
+      "valid_date_records": 50
+    }
+  },
+  "outliers": {
+    "UnitPrice": {
+      "outlier_count": 3,
+      "outlier_percentage": 6.0,
+      "lower_threshold": -131.25,
+      "upper_threshold": 378.75
+    },
+    "Quantity": {
+      "outlier_count": 2,
+      "outlier_percentage": 4.0,
+      "lower_threshold": -1.5,
+      "upper_threshold": 10.5
+    },
+    "Total": {
+      "outlier_count": 3,
+      "outlier_percentage": 6.0,
+      "lower_threshold": -266.25,
+      "upper_threshold": 1143.75
+    }
+  },
+  "possible_target_columns": [
+    "Quantity",
+    "Total"
+  ]
+}
