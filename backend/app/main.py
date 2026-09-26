@@ -1,7 +1,8 @@
 """
 UPIAI (Universal Personalized Inventory AI) FastAPI Main Application Entrypoint.
-Wires all AI engines, data readiness auditors, multi-horizon forecasters,
-supplier loggers, and continuous feedback monitoring routers.
+Wires Turso (libsql) database engine, DMart CSV auto-ingestion,
+Data Readiness & Provenance Auditor, XGBoost Multi-Horizon Forecaster,
+and Streamlit/Vercel compatible API routers.
 """
 
 import os
@@ -13,15 +14,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 
-# Ensure root workspace is on PYTHONPATH for AI core submodules
+# Ensure root workspace and backend dir are in PYTHONPATH
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-
-from backend.app.database.mongodb import mongo_repo
-from backend.app.database import db_manager, get_db_status
-from backend.app.routers import readiness_router, ai_router, supplier_router
-from backend.app.api import ingestion_router, forecast_router, monitoring_router
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 load_dotenv()
+
+from app.database import turso_db
+from app.routers import readiness_router, ai_router, supplier_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -32,21 +32,18 @@ logger = logging.getLogger("upiai.main")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Lifecycle manager: connects database on startup and tears down on shutdown."""
-    logger.info("🚀 Starting UPIAI Demand Intelligence Backend Engine...")
-    await db_manager.connect_db()
-    await mongo_repo.connect()
+    """Lifecycle manager: initializes Turso database and ingests DMart datasets."""
+    logger.info("🚀 Starting UPIAI Demand Intelligence Backend with Turso (libsql)...")
+    await turso_db.connect_db()
     yield
     logger.info("🛑 Shutting down UPIAI Backend Engine...")
-    await db_manager.close_db()
-    await mongo_repo.close()
 
 
 app = FastAPI(
     title="UPIAI - Universal Personalized Inventory & Demand Intelligence API",
     description=(
         "Production-grade AI demand forecasting, dataset provenance auditing, "
-        "and inventory optimization system powered by XGBoost, FastAPI, and MongoDB."
+        "and inventory optimization system powered by XGBoost, FastAPI, and Turso (libsql)."
     ),
     version="1.0.0",
     docs_url="/docs",
@@ -54,8 +51,11 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Configure CORS with Vercel wildcard regex support
-allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000,https://upiai.vercel.app")
+# Configure CORS for Streamlit (8501), Next.js (3000), and Vercel Cloud
+allowed_origins_env = os.getenv(
+    "ALLOWED_ORIGINS", 
+    "http://localhost:8501,http://127.0.0.1:8501,http://localhost:3000,http://127.0.0.1:3000,https://upiai.vercel.app"
+)
 origins = [o.strip() for o in allowed_origins_env.split(",") if o.strip()]
 
 app.add_middleware(
@@ -70,51 +70,48 @@ app.add_middleware(
 
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
-    """Adds processing header and logs requests."""
+    """Adds custom telemetry header to API responses."""
     response = await call_next(request)
-    response.headers["X-Powered-By"] = "UPIAI Intelligence Core"
+    response.headers["X-Powered-By"] = "UPIAI Turso Intelligence Core"
     return response
 
 
-# Register Feature Routers
-app.include_router(ingestion_router.router)
+# Register Core Routers
 app.include_router(readiness_router.router)
-app.include_router(forecast_router.router)
 app.include_router(ai_router.router)
 app.include_router(supplier_router.router)
-app.include_router(monitoring_router.router)
 
 
 @app.get("/", tags=["System Diagnostics"])
 async def root_index():
-    """Returns system status and available API route hubs."""
+    """Returns platform overview, Turso DB status, and registered API hubs."""
+    db_status = turso_db.get_db_status()
     return {
         "system": "Universal Personalized Inventory AI (UPIAI)",
         "version": "1.0.0",
         "status": "ONLINE",
+        "database": db_status,
         "documentation": "/docs",
         "endpoints": {
-            "data_ingestion": "/api/v1/ingest/upload",
-            "data_readiness": "/api/v1/readiness/audit",
-            "demand_forecast": "/api/v1/forecast/predict",
-            "what_if_simulation": "/api/v1/forecast/simulate",
-            "model_benchmarks": "/api/v1/forecast/benchmark",
+            "data_readiness": "/api/v1/readiness",
             "executive_kpis": "/api/v1/ai/kpis",
-            "reorder_queue": "/api/v1/ai/recommendations",
-            "supplier_intelligence": "/api/v1/suppliers/intelligence",
-            "model_monitoring": "/api/v1/monitoring/health"
+            "demand_forecast": "/api/v1/ai/forecast",
+            "category_performance": "/api/v1/ai/categories",
+            "sales_analytics": "/api/v1/ai/sales-analytics",
+            "inventory_status": "/api/v1/ai/inventory",
+            "supplier_intelligence": "/api/v1/suppliers/intelligence"
         }
     }
 
 
 @app.get("/health", tags=["System Diagnostics"])
 async def health_check():
-    """System health check endpoint for container probes and Vercel/Render monitors."""
-    db_health = get_db_status()
+    """System health check endpoint for monitoring probes."""
+    db_status = turso_db.get_db_status()
     return {
         "status": "HEALTHY",
-        "database": db_health,
-        "engine_mode": "Active Autonomous",
+        "database": db_status,
+        "engine_mode": "Active Autonomous XGBoost + Turso",
         "ai_core_version": "1.0.0"
     }
 
@@ -123,4 +120,4 @@ if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", 8000))
     host = os.getenv("HOST", "0.0.0.0")
-    uvicorn.run("backend.app.main:app", host=host, port=port, reload=True)
+    uvicorn.run("app.main:app", host=host, port=port, reload=True)
