@@ -33,10 +33,10 @@ logger = logging.getLogger("upiai.main")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifecycle manager: initializes Turso database and ingests DMart datasets."""
-    logger.info("🚀 Starting UPIAI Demand Intelligence Backend with Turso (libsql)...")
+    logger.info("[START] Initializing UPIAI Demand Intelligence Backend with Turso (libsql)...")
     await turso_db.connect_db()
     yield
-    logger.info("🛑 Shutting down UPIAI Backend Engine...")
+    logger.info("[SHUTDOWN] Stopping UPIAI Backend Engine...")
 
 
 app = FastAPI(

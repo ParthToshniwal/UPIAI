@@ -9,9 +9,14 @@ from fastapi import APIRouter, HTTPException, UploadFile, File
 import pandas as pd
 import io
 
-from app.models.schemas import ReadinessScorecardResponse, ReadinessAuditRequest
-from app.ml.readiness import DataReadinessEngine
-from app.database import turso_db
+try:
+    from app.models.schemas import ReadinessScorecardResponse, ReadinessAuditRequest
+    from app.ml.readiness import DataReadinessEngine
+    from app.database import turso_db
+except ImportError:
+    from backend.app.models.schemas import ReadinessScorecardResponse, ReadinessAuditRequest
+    from backend.app.ml.readiness import DataReadinessEngine
+    from backend.app.database import turso_db
 
 router = APIRouter(prefix="/api/v1/readiness", tags=["Data Readiness & Provenance"])
 

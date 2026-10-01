@@ -7,12 +7,20 @@ lead time volatility metrics, and accounts payable ledger tracking via Turso.
 from typing import List, Dict, Any, Optional
 from fastapi import APIRouter, HTTPException
 
-from app.models.schemas import (
-    SupplierLog,
-    SupplierScorecard,
-    SupplierIntelligenceResponse
-)
-from app.database import turso_db
+try:
+    from app.models.schemas import (
+        SupplierLog,
+        SupplierScorecard,
+        SupplierIntelligenceResponse
+    )
+    from app.database import turso_db
+except ImportError:
+    from backend.app.models.schemas import (
+        SupplierLog,
+        SupplierScorecard,
+        SupplierIntelligenceResponse
+    )
+    from backend.app.database import turso_db
 
 router = APIRouter(prefix="/api/v1/suppliers", tags=["Supplier Intelligence & Logs"])
 

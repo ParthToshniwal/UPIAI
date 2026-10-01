@@ -72,19 +72,19 @@ class TursoDatabaseManager:
                 )
                 self.is_remote_turso = True
                 self.is_connected = True
-                logger.info("✅ Connected to Remote Turso Database at %s", self.db_url)
+                logger.info("[OK] Connected to Remote Turso Database at %s", self.db_url)
             else:
                 db_file = self._get_sqlite_path()
                 self._sync_conn = self.get_connection()
                 self.is_connected = True
                 self.is_remote_turso = False
-                logger.info("✅ Connected to Turso-compatible local database engine (%s)", db_file)
+                logger.info("[OK] Connected to Turso-compatible local database engine (%s)", db_file)
 
             # Initialize schema & ingest DMart data
             self._create_tables()
             self._ingest_dmart_datasets()
         except Exception as exc:
-            logger.error("❌ Failed to initialize database: %s. Using in-memory fallback.", exc)
+            logger.error("[ERROR] Failed to initialize database: %s. Using in-memory fallback.", exc)
             self.is_connected = False
 
     def _create_tables(self):
@@ -298,7 +298,7 @@ class TursoDatabaseManager:
                 logger.error("Error reading DMart CSV %s: %s", file_name, err)
 
         conn.commit()
-        logger.info("✅ Ingested %d total DMart transaction records into Turso.", total_inserted)
+        logger.info("[OK] Ingested %d total DMart transaction records into Turso.", total_inserted)
 
         # Aggregate category analytics and populate secondary inventory/supplier tables
         self._populate_category_summaries(conn)

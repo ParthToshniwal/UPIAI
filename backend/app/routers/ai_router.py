@@ -9,16 +9,28 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException, Query
 import pandas as pd
 
-from app.models.schemas import (
-    ForecastRequest,
-    ForecastResponse,
-    SKUForecastDetail,
-    ExecutiveKPIResponse,
-    ReorderRecommendation
-)
-from app.ml.forecaster import DMartDemandForecaster, XGB_AVAILABLE
-from app.ml.readiness import DataReadinessEngine
-from app.database import turso_db
+try:
+    from app.models.schemas import (
+        ForecastRequest,
+        ForecastResponse,
+        SKUForecastDetail,
+        ExecutiveKPIResponse,
+        ReorderRecommendation
+    )
+    from app.ml.forecaster import DMartDemandForecaster, XGB_AVAILABLE
+    from app.ml.readiness import DataReadinessEngine
+    from app.database import turso_db
+except ImportError:
+    from backend.app.models.schemas import (
+        ForecastRequest,
+        ForecastResponse,
+        SKUForecastDetail,
+        ExecutiveKPIResponse,
+        ReorderRecommendation
+    )
+    from backend.app.ml.forecaster import DMartDemandForecaster, XGB_AVAILABLE
+    from backend.app.ml.readiness import DataReadinessEngine
+    from backend.app.database import turso_db
 
 router = APIRouter(prefix="/api/v1/ai", tags=["AI Demand Intelligence & Forecasting"])
 
