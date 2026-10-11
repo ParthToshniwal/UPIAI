@@ -116,6 +116,42 @@ async def health_check():
     }
 
 
+from fastapi.responses import JSONResponse, FileResponse
+
+@app.get("/download/ppt", tags=["Report Downloads"])
+@app.get("/download/presentation", tags=["Report Downloads"])
+async def download_presentation():
+    """Direct HTTP download endpoint for the 12-slide Algorithms PowerPoint deck."""
+    ppt_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../docs/UPIAI_Algorithms_Detailed_Presentation.pptx"))
+    if not os.path.exists(ppt_path):
+        ppt_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../data/processed/UPIAI_Algorithms_Detailed_Presentation.pptx"))
+    if os.path.exists(ppt_path):
+        return FileResponse(
+            path=ppt_path,
+            filename="UPIAI_Algorithms_Detailed_Presentation.pptx",
+            media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        )
+    return JSONResponse(status_code=404, content={"error": "Presentation file not found on disk."})
+
+
+@app.get("/download/cleaning-report", tags=["Report Downloads"])
+async def download_cleaning_pdf():
+    """Direct HTTP download endpoint for the DMart Data Cleaning Audit PDF."""
+    pdf_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../data/processed/DMart_Data_Cleaning_Report.pdf"))
+    if os.path.exists(pdf_path):
+        return FileResponse(path=pdf_path, filename="DMart_Data_Cleaning_Report.pdf", media_type="application/pdf")
+    return JSONResponse(status_code=404, content={"error": "Cleaning report PDF not found."})
+
+
+@app.get("/download/weekly-report", tags=["Report Downloads"])
+async def download_weekly_pdf():
+    """Direct HTTP download endpoint for the DMart Weekly Summary Report PDF."""
+    pdf_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../data/processed/DMart_Weekly_Summary_Report.pdf"))
+    if os.path.exists(pdf_path):
+        return FileResponse(path=pdf_path, filename="DMart_Weekly_Summary_Report.pdf", media_type="application/pdf")
+    return JSONResponse(status_code=404, content={"error": "Weekly summary PDF not found."})
+
+
 if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", 8000))

@@ -22,6 +22,11 @@ except ImportError:
     )
     from backend.app.database import turso_db
 
+try:
+    from ai.suppliers.scorer import SupplierScorer
+except ImportError:
+    SupplierScorer = None
+
 router = APIRouter(prefix="/api/v1/suppliers", tags=["Supplier Intelligence & Logs"])
 
 
@@ -51,28 +56,46 @@ async def get_supplier_intelligence():
         total_on_time += on_time
         bal = float(s.get("balance_due", 0.0))
         status = s.get("payment_status", "Paid")
+        quality = float(s.get("quality_rating", 4.5))
+        lead_time = int(s.get("avg_lead_time_days", 7))
 
         if status == "Pending":
             total_pending += bal
         elif status == "Overdue":
             total_overdue += bal
 
-        # Reliability Tier assignment
-        quality = float(s.get("quality_rating", 4.5))
-        if on_time >= 0.92 and quality >= 4.5:
-            tier = "TIER_1_PREFERRED"
-        elif on_time >= 0.85:
-            tier = "TIER_2_RELIABLE"
+        # Evaluate supplier with AI SupplierScorer if available
+        if SupplierScorer:
+            scored = SupplierScorer.score_supplier(
+                supplier_id=s["supplier_id"],
+                supplier_name=s["supplier_name"],
+                category=s.get("category", "Grocery"),
+                on_time_delivery_rate=on_time,
+                avg_lead_time_days=lead_time,
+                lead_time_variance_days=1.5,
+                quality_rating=quality,
+                balance_due=bal,
+                payment_status=status,
+                payment_terms=s.get("payment_terms", "Net 30")
+            )
+            tier = scored["reliability_tier"]
+            on_time_pct = scored["on_time_delivery_rate_pct"]
         else:
-            tier = "TIER_3_HIGH_RISK"
+            if on_time >= 0.92 and quality >= 4.5:
+                tier = "TIER_1_PREFERRED"
+            elif on_time >= 0.85:
+                tier = "TIER_2_RELIABLE"
+            else:
+                tier = "TIER_3_HIGH_RISK"
+            on_time_pct = round(on_time * 100.0, 1)
 
         scorecards.append(
             SupplierScorecard(
                 supplier_id=s["supplier_id"],
                 supplier_name=s["supplier_name"],
                 category=s.get("category", "Grocery"),
-                on_time_delivery_rate_pct=round(on_time * 100.0, 1),
-                avg_lead_time_days=int(s.get("avg_lead_time_days", 7)),
+                on_time_delivery_rate_pct=on_time_pct,
+                avg_lead_time_days=lead_time,
                 lead_time_variance_days=1.5,
                 quality_score=quality,
                 balance_due=bal,

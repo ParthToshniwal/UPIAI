@@ -1,0 +1,15 @@
+# Vercel Deployment Exclusions for UPIAI FastAPI Serverless Function
+data/
+streamlit_app/
+docs/
+tests/
+scripts/
+simulation/
+*.log
+*.db
+*.db-shm
+*.db-wal
+.vscode/
+.idea/
+.venv/
+__pycache__/

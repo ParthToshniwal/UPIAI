@@ -1,0 +1,102 @@
+{
+  "execution_time_seconds": 21.59,
+  "raw_file": {
+    "path": "C:/dataset/DMart_sample_data.csv",
+    "file_size_mb": 72.92,
+    "row_count": 1000000,
+    "column_count": 8,
+    "columns": [
+      "Date",
+      "Time",
+      "CustomerType",
+      "ProductCategory",
+      "UnitPrice",
+      "Quantity",
+      "Total",
+      "FullName"
+    ],
+    "missing_values": 0,
+    "duplicate_rows": 0,
+    "quality_score_before": 76.5
+  },
+  "cleaned_file": {
+    "path": "C:\\Users\\Parth\\OneDrive\\Desktop\\UPIAI\\data\\processed\\DMart_cleaned_dataset.csv",
+    "file_size_mb": 137.32,
+    "row_count": 1000000,
+    "column_count": 19,
+    "columns": [
+      "transaction_id",
+      "transaction_date",
+      "transaction_time",
+      "transaction_timestamp",
+      "customer_name",
+      "customer_type",
+      "product_category",
+      "unit_price",
+      "units_sold",
+      "total_amount",
+      "estimated_cost",
+      "gross_profit",
+      "margin_pct",
+      "year",
+      "month",
+      "quarter",
+      "day_of_week",
+      "is_weekend",
+      "hour_of_day"
+    ],
+    "missing_values": 0,
+    "duplicate_rows": 0,
+    "quality_score_after": 98.8,
+    "duplicates_removed": 0,
+    "reconciled_discrepancies": 0,
+    "sample_path": "C:\\Users\\Parth\\OneDrive\\Desktop\\UPIAI\\data\\processed\\DMart_cleaned_sample_10k.csv",
+    "sample_rows": 10000
+  },
+  "business_kpis": {
+    "total_gross_revenue": 765094619.39,
+    "total_gross_profit": 202116147.17,
+    "overall_margin_pct": 26.4,
+    "total_units_sold": 2999324,
+    "average_order_value": 765.09,
+    "min_date": "2023-01-01",
+    "max_date": "2025-01-09",
+    "date_span_days": 740,
+    "category_counts": {
+      "Home & Kitchen": 200424,
+      "Electronics": 200113,
+      "Clothing": 199927,
+      "Beauty & Personal Care": 199892,
+      "Grocery": 199644
+    },
+    "category_revenue": {
+      "Beauty & Personal Care": 153378003.39,
+      "Clothing": 153184908.42,
+      "Electronics": 152719644.45,
+      "Grocery": 152496030.41,
+      "Home & Kitchen": 153316032.72
+    },
+    "category_profit": {
+      "Beauty & Personal Care": 49080964.63,
+      "Clothing": 58210267.82,
+      "Electronics": 21380752.82,
+      "Grocery": 27449297.59,
+      "Home & Kitchen": 45994864.31
+    },
+    "customer_distribution": {
+      "Premium": 333480,
+      "Member": 333408,
+      "Regular": 333112
+    }
+  },
+  "transformations_applied": [
+    "Renamed legacy column keys to canonical lowercase snake_case standard.",
+    "Standardized composite date-time strings into ISO 8601 YYYY-MM-DD date and HH:MM:SS time.",
+    "Extracted temporal seasonality features: year, month, quarter, day_of_week, is_weekend, hour_of_day.",
+    "Reconciled total revenue: verified total_amount = unit_price * units_sold across 1,000,000 transactions.",
+    "Attributed department-specific COGS (Cost of Goods Sold), Gross Profit, and Margin %.",
+    "Assigned deterministic indexed Transaction IDs (TXN-0000001 to TXN-1000000).",
+    "Trimmed whitespace and normalized CustomerType and ProductCategory title casings.",
+    "Zero data loss: 100% of observations retained and validated."
+  ]
+}

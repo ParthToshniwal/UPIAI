@@ -47,17 +47,42 @@ class TursoDatabaseManager:
         self._libsql_client = None
 
     def _get_sqlite_path(self) -> str:
-        """Resolves file path for local SQLite storage."""
+        """Resolves file path for local SQLite storage relative to root workspace."""
         if self.db_url.startswith("file:"):
-            return self.db_url.replace("file:", "")
-        if self.db_url.endswith(".db"):
-            return self.db_url
-        return self.local_db_path
+            path = self.db_url.replace("file:", "")
+        elif self.db_url.endswith(".db"):
+            path = self.db_url
+        else:
+            path = self.local_db_path
+        if not os.path.isabs(path):
+            root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+            path = os.path.join(root_dir, path)
+        return path
 
-    def get_connection(self) -> sqlite3.Connection:
-        """Returns a synchronized thread-safe database connection."""
+    def ensure_initialized(self):
+        """Synchronously ensures database schema and tables exist."""
+        if not self.is_connected:
+            try:
+                db_file = self._get_sqlite_path()
+                self._sync_conn = self.get_connection(skip_init=True)
+                self.is_connected = True
+                self.is_remote_turso = False
+                self._create_tables()
+                self._ingest_dmart_datasets()
+            except Exception as exc:
+                logger.error("[ERROR] Failed to synchronously initialize database: %s", exc)
+
+    def get_connection(self, skip_init: bool = False) -> sqlite3.Connection:
+        """Returns a synchronized thread-safe database connection with WAL mode."""
+        if not skip_init and not self.is_connected:
+            self.ensure_initialized()
         db_file = self._get_sqlite_path()
-        conn = sqlite3.connect(db_file, check_same_thread=False)
+        conn = sqlite3.connect(db_file, check_same_thread=False, timeout=20.0)
+        try:
+            conn.execute("PRAGMA journal_mode=WAL;")
+            conn.execute("PRAGMA busy_timeout=5000;")
+        except Exception:
+            pass
         conn.row_factory = sqlite3.Row
         return conn
 
@@ -75,7 +100,7 @@ class TursoDatabaseManager:
                 logger.info("[OK] Connected to Remote Turso Database at %s", self.db_url)
             else:
                 db_file = self._get_sqlite_path()
-                self._sync_conn = self.get_connection()
+                self._sync_conn = self.get_connection(skip_init=True)
                 self.is_connected = True
                 self.is_remote_turso = False
                 logger.info("[OK] Connected to Turso-compatible local database engine (%s)", db_file)
@@ -166,15 +191,19 @@ class TursoDatabaseManager:
 
     def _find_dmart_csv_files(self) -> List[str]:
         """Discovers DMart raw CSV datasets from standard workspace locations."""
+        root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
         possible_paths = [
+            "C:/dataset/DMart_sample_data.csv",
+            "C:\\dataset\\DMart_sample_data.csv",
+            os.path.join(root_dir, "data", "processed", "DMart_cleaned_sample_10k.csv"),
+            os.path.join(root_dir, "data", "raw", "DMart_sample_data.csv"),
+            os.path.join(root_dir, "data", "raw", "DMart_Grocery_Sales_-_Retail_Analytics_Dataset.csv"),
+            os.path.join(root_dir, "data", "DMart_sample_data.csv"),
+            os.path.join(root_dir, "data", "DMart_Grocery_Sales_-_Retail_Analytics_Dataset.csv"),
             "data/raw/DMart_sample_data.csv",
             "data/raw/DMart_Grocery_Sales_-_Retail_Analytics_Dataset.csv",
             "../data/raw/DMart_sample_data.csv",
             "../data/raw/DMart_Grocery_Sales_-_Retail_Analytics_Dataset.csv",
-            "../../data/raw/DMart_sample_data.csv",
-            "../../data/raw/DMart_Grocery_Sales_-_Retail_Analytics_Dataset.csv",
-            "c:/Users/Parth/OneDrive/Desktop/UPIAI/data/raw/DMart_sample_data.csv",
-            "c:/Users/Parth/OneDrive/Desktop/UPIAI/data/raw/DMart_Grocery_Sales_-_Retail_Analytics_Dataset.csv",
         ]
         found = []
         for p in possible_paths:

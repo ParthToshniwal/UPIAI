@@ -1,0 +1,9 @@
+[project]
+name = "upiai"
+version = "1.0.0"
+description = "Universal Personalized Inventory & Demand Intelligence Engine"
+readme = "README.md"
+requires-python = ">=3.10"
+
+[tool.vercel]
+entrypoint = "main.py"

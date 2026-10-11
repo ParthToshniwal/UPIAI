@@ -30,6 +30,11 @@ mlruns/
 *.db
 *.sqlite
 
+# Large Data Files (>50MB, stay local)
+data/processed/DMart_cleaned_dataset.csv
+*.db-shm
+*.db-wal
+
 # IDE & OS
 .DS_Store
 Thumbs.db

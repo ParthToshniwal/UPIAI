@@ -35,5 +35,10 @@ if __name__ == "__main__":
     
     port = int(os.getenv("PORT", 8000))
     host = os.getenv("HOST", "127.0.0.1")
+    reload_flag = os.getenv("RELOAD", "false").lower() in ("true", "1", "yes") or "--reload" in sys.argv
     
-    uvicorn.run("backend.app.main:app", host=host, port=port, reload=True)
+    if reload_flag:
+        uvicorn.run("backend.app.main:app", host=host, port=port, reload=True)
+    else:
+        from backend.app.main import app
+        uvicorn.run(app, host=host, port=port)
